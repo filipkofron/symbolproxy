@@ -1,6 +1,6 @@
 use ntex::web;
 use ntex::http;
-use std;
+use std::{self, ops::Deref};
 use chrono::Local;
 
 extern crate chrono;
@@ -12,7 +12,12 @@ fn get_remote_name(req: &web::dev::WebRequest<web::DefaultError>) -> String {
 
 fn sanitize_path(root: &std::path::Path, path_req: &str) -> std::path::PathBuf {
     let no_back = std::path::PathBuf::from(path_req.strip_prefix("/").unwrap_or(path_req).replace("..", ""));
-    let mut full_path = root.join(&no_back).canonicalize().unwrap_or(std::path::PathBuf::from(&root));
+    let mut full_path = std::path::PathBuf::from(root);
+    for part in no_back.iter() {
+        full_path = full_path.join(part);
+    }
+    full_path = full_path.canonicalize().unwrap_or(std::path::PathBuf::from(&root));
+
     if !full_path.starts_with(&root) {
         println!("{} doesn't start with {}", full_path.to_str().unwrap_or(""), root.to_str().unwrap_or(""));
         full_path = std::path::PathBuf::from(&root).join("Invalid path");
@@ -22,11 +27,12 @@ fn sanitize_path(root: &std::path::Path, path_req: &str) -> std::path::PathBuf {
 
 async fn symbol_service(req: web::dev::WebRequest<web::DefaultError>) -> Result<web::dev::WebResponse, web::Error> {
     let args: Vec<String> = std::env::args().collect();
-    let store_path = String::from(&args[1]);
-    let remote = get_remote_name(&req);
+    let store_path = String::from(args[1].deref().replace("\\", "/"));
+    let remote = get_remote_name(&req).replace("\\", "/");
 
     let full_path = sanitize_path(&std::path::PathBuf::from(store_path).canonicalize().unwrap(), req.path());
     let full_path_str = full_path.to_str().unwrap_or("Invalid");
+
 
     let link = std::fs::read_to_string(&full_path);
     let link_str = String::from(link.as_deref().unwrap_or("INVALID"));
