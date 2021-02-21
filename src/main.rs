@@ -30,13 +30,15 @@ async fn symbol_service(req: web::dev::WebRequest<web::DefaultError>) -> Result<
     let store_path = String::from(args[1].deref().replace("\\", "/"));
     let remote = get_remote_name(&req).replace("\\", "/");
 
+	println!("Path request: {}", req.path());
+
     let full_path = sanitize_path(&std::path::PathBuf::from(store_path).canonicalize().unwrap(), req.path());
     let full_path_str = full_path.to_str().unwrap_or("Invalid");
 
 
     let link = std::fs::read_to_string(&full_path);
     let link_str = String::from(link.as_deref().unwrap_or("INVALID"));
-    println!("[{}][{}]: {} -> {}", Local::now().format("%Y-%m-%d %H:%M:%S"), remote, full_path_str, link_str);
+    println!(" |- [{}][{}]: {} -> {}", Local::now().format("%Y-%m-%d %H:%M:%S"), remote, full_path_str, link_str);
     
     match &link {
         Ok(_) => Ok(req.into_response(
