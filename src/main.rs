@@ -90,8 +90,7 @@ async fn main() -> std::io::Result<()> {
         Err(err) => panic!("Invalid path: {} error: {}", &args[1], err.to_string())
     };
 
-    let database_file = "/Volumes/SSD/Temp/db/db.sqlite";
-    let database_url = format!("sqlite://{}", database_file);
+    let database_url = format!("sqlite://{}", checked_database_path.to_str().unwrap());
     let pool_timeout = Duration::from_secs(30);
     let pool_max_connections = 8;
 
