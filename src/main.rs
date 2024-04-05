@@ -92,7 +92,7 @@ async fn main() -> std::io::Result<()> {
 
     let database_url = format!("sqlite://{}", checked_database_path.to_str().unwrap());
     let pool_timeout = Duration::from_secs(30);
-    let pool_max_connections = 8;
+    let pool_max_connections = 128;
 
     let connection_options = SqliteConnectOptions::from_str(&database_url).unwrap()
         .create_if_missing(true)
